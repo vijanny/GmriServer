@@ -14,9 +14,9 @@ var UserScheme =new base.Schema({
     lastLoginTime:Date,//最后登陆时间
     lastActionTime:{type:Date,default:Date.now},//最后活动时间
     createTime:{type:Date,default:Date.now},//创建时间
-    masterAppId:[{type:ObjectId}],
+    masterAppId:[{type:ObjectId,ref: 'masterApp' }],//关联masterApp
     weChat:Number
 });
-UserScheme.index({mobile:1},{"background" : true});//设置索引
+UserScheme.index({nickname:1},{"background" : true});//设置索引
 var UserEntity = base.mongoose.model('UserEntity',UserScheme,'user');//指定在数据库中的collection名称为user
 exports.UserEntity  = UserEntity;//导出UserEntity实体
