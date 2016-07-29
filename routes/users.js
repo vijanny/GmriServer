@@ -72,8 +72,9 @@ router.post('/login', function (req, res, next) {
 
     var usersName = req.body.name;
     var usersPwd = req.body.password;
-    if( typeof(usersName) == "undefined"||typeof(usersPwd) == "undefined"||!util.checkInput(usersName)||!util.checkInput(usersPwd)){
-        res.send({errorCode:-4,res:{message:'用户名或密码错误'}});
+    var masterAppId = req.body.masterAppId;
+    if(typeof(masterAppId) == "undefined"|| typeof(usersName) == "undefined"||typeof(usersPwd) == "undefined"||!util.checkInput(masterAppId)||!util.checkInput(usersName)||!util.checkInput(usersPwd)){
+        res.send({errorCode:-4,res:{message:'用户名或密码/masterAppId 错误'}});
         return;
     }
     usersDb.findOne({nickname: usersName}, null, function (err, user) {
@@ -89,9 +90,37 @@ router.post('/login', function (req, res, next) {
         console.log('login:/r/n' + JSON.stringify(req.body));
         console.log('user:/r/n' + user);
         if (user.password == usersPwd) {
-            req.session.user = user;
-            res.cookie('user', req.session.user.nickname, {expires: new Date(Date.now() + 900000), httpOnly: false});
-            res.send({errorCode: 0});
+            //TODO:更新masterApp中的USERID
+
+            //TODO:更新user 中的masterId
+            masterAppDb.findOne({'masterAppMacId': masterAppId},null,function(err,masterApp){
+                if (err) {//查询异常
+                    res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+                    return;
+                }
+                if(!masterApp){
+                    res.send({errorCode: -2, res: {message: '系统设备未初始化'}});
+                    return;
+                }
+                masterAppDb.update({'masterAppMacId': masterAppId}, {'$set':{'userId':user._id}}, function (err, numberAffected, raw) {
+                    if (err) {
+                        res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+                        return;
+                    }
+                    usersDb.update({'nickname': usersName},{'$push':{'masterAppId':masterApp._id}},function (err, numberAffected, raw){
+                        if (err) {
+                            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+                            return;
+                        }
+                        req.session.user = user;
+                        //res.cookie('user', req.session.user.nickname, {expires: new Date(Date.now() + 900000), httpOnly: false});
+                        res.send({errorCode: 0});
+                    });
+                });
+
+            });
+
+
             //res.send("登录成功");
             //res.redirect('/managers/control/index.html');
         } else {

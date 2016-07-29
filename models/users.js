@@ -14,7 +14,7 @@ var UserScheme =new base.Schema({
     lastLoginTime:Date,//最后登陆时间
     lastActionTime:{type:Date,default:Date.now},//最后活动时间
     createTime:{type:Date,default:Date.now},//创建时间
-    masterAppId:[{type:ObjectId,ref: 'masterApp' }],//关联masterApp
+    masterAppId:[{type:ObjectId}],//关联masterApp
     weChat:Number
 });
 UserScheme.index({nickname:1},{"background" : true});//设置索引
