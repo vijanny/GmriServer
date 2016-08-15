@@ -14,6 +14,8 @@ var dev   = require('./routes/dev');
 var masterApp = require('./routes/masterApp');
 var miniMasterApp = require('./routes/miniMasterApp');
 var managers = require('./routes/managers');
+var category   = require('./routes/category');
+var scene   = require('./routes/scene');
 
 
 
@@ -59,6 +61,9 @@ app.use('/users', users);
 app.use('/dev',dev);
 app.use('/masterApp',masterApp);
 app.use('/miniMasterApp',miniMasterApp);
+app.use('/cate',category);
+app.use('/scene',scene);
+
 
 app.use('/managers',managers);
 app.use('/managers/',express.static(path.join(__dirname, 'public/ng-admin')));

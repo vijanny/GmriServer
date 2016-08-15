@@ -122,6 +122,8 @@ router.post('/signUp',function(req,res,next){
 //用户登录
 router.post('/login',function(req,res,next){
 
+
+
     var managersName = req.body.name;
     var managersPwd = req.body.password;
     console.log('login name: '+managersName+' ; pwd :'+managersPwd);

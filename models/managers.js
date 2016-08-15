@@ -14,4 +14,5 @@ var managersScheme =new base.Schema({
 });
 managersScheme.index({nickname:1},{"background" : true});//设置索引
 var managersEntity = base.mongoose.model('managersEntity',managersScheme,'managers');//指定在数据库中的collection名称为user
+
 exports.managersEntity  = managersEntity;//导出UserEntity实体

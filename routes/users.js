@@ -99,7 +99,7 @@ router.post('/login', function (req, res, next) {
                     return;
                 }
                 if(!masterApp){
-                    res.send({errorCode: -2, res: {message: '系统设备未初始化'}});
+                    res.send({errorCode: -5, res: {message: '系统设备未初始化'}});
                     return;
                 }
                 masterAppDb.update({'masterAppMacId': masterAppId}, {'$set':{'userId':user._id}}, function (err, numberAffected, raw) {
