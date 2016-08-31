@@ -4,10 +4,11 @@
 var base = require('./Base');
 var ObjectId = base.ObjectId;
 var devScheme = new base.Schema({
-    uuid: Number,
-    check:Number,//用于鉴权
+    uuid: String,
+    check:String,//用于鉴权
     devName:{type:String},//设备名称
     categoryId:ObjectId,//类型关联
+    categoryName:String,
     createTime: {type: Date, default: Date.now},//创建时间
     masterAppId: {type: ObjectId, ref: 'masterApp'}//masterAppId
 });

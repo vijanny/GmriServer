@@ -24,13 +24,19 @@ router.post('/login', function (req, res, next) {
 //根据uuid 获取基本设备的基础信息
 router.post('/getDevBaseInfo', function (req, res, next) {
     var uuid = req.body.uuid;
-    devDb.find({uuid: uuid}, null, function (err, dev) {
+    console.log('uuid = '+ uuid );
+    if( typeof(uuid) == "undefined"||!util.checkInput(uuid)){
+        res.send({errorCode:-4,res:{message:'非法的UUID字符串'}});
+        return;
+    }
+    devDb.findOne({uuid: uuid}, null, function (err, dev) {
+        console.log('dev : '+dev);
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;
         }
         if (!dev) {
-            res.send({errorCode: -1, res: {message: '没有设备关联'}});
+            res.send({errorCode: -1, res: {message: '非法的UUID'}});
             return;
         }
         res.send({errorCode: 0, res: dev});
@@ -195,6 +201,10 @@ router.post('/unBinding', function (req, res, next) {
 router.post('/reName', function (req, res, next) {
     var uuid = req.body.uuid;
     var devName = req.body.devName;
+    if( typeof(uuid) == "undefined"||!util.checkInput(uuid)||typeof(devName) == "undefined"||!util.checkInput(devName)){
+        res.send({errorCode:-4,res:{message:'非法的UUID字符串或命名'}});
+        return;
+    }
     devDb.update({uuid: uuid}, {'$set': {'devName': devName}}, function (err, numberAffected, raw) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
@@ -204,4 +214,81 @@ router.post('/reName', function (req, res, next) {
     });
 });
 
+//创建DEV
+router.post('/createDev', function (req, res, next) {
+    var devBaseInf = req.body.devBaseInf;
+    if( typeof(devBaseInf) == "undefined"){
+        res.send({errorCode:-4,res:{message:'devBaseInf undefined'}});
+        return;
+    }
+    cateDb.findOne({categoryName:devBaseInf.categoryName},'_id',function(err,cate){
+        if (err) {
+            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+            return;
+        }
+        if (!cate) {
+            res.send({errorCode: -1, res: {message: '没有设备类关联'}});
+            return;
+        }
+        devBaseInf.categoryId = cate._id;
+        var createDev = new devDb(devBaseInf);
+        createDev.save(function (err, row) {
+            if (err) {//服务器保存异常
+                res.send({errorCode:-3,res:{message:'服务器内部错误'}});
+                return;
+            }
+            res.send({errorCode:0,res:row});
+
+        });
+    });
+});
+//更新Dev基础数据
+router.post('/updateBaseInf', function (req, res, next) {
+    var uuid = req.body.uuid;
+    var baseInf = req.body.baseInf;
+    if( typeof(uuid) == "undefined"||!util.checkInput(uuid)||typeof(baseInf) == "undefined"){
+        res.send({errorCode:-4,res:{message:'非法的UUID字符串或baseInf没定义'}});
+        return;
+    }
+    devDb.update({uuid: uuid}, {'$set':baseInf}, function (err, numberAffected, raw) {
+        if (err) {
+            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+            return;
+        }
+        res.send({errorCode: 0, res: raw});
+    });
+});
+//创建设备类
+router.post('/createCategory', function (req, res, next) {
+    var category = req.body.category;
+    if( typeof(category) == "undefined"){
+        res.send({errorCode:-4,res:{message:'category undefined'}});
+        return;
+    }
+    var createCategory = new cateDb(category);
+    createCategory.save(function (err, row) {
+        if (err) {//服务器保存异常
+            res.send({errorCode:-3,res:{message:'服务器内部错误'}});
+            return;
+        }
+        res.send({errorCode:0,res:row});
+    });
+});
+
+//更新设备类数据
+router.post('/updateBaseInf', function (req, res, next) {
+    var categoryName = req.body.categoryName;
+    var categoryInf = req.body.categoryInf;
+    if( typeof(categoryName) == "undefined"||!util.checkInput(uuid)||typeof(categoryInf) == "undefined"){
+        res.send({errorCode:-4,res:{message:'非法的categoryName或categoryInf没定义'}});
+        return;
+    }
+    cateDb.update({categoryName: categoryName}, {'$set':categoryInf}, function (err, numberAffected, raw) {
+        if (err) {
+            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+            return;
+        }
+        res.send({errorCode: 0, res: raw});
+    });
+});
 module.exports = router;
