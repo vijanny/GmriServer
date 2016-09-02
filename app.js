@@ -56,6 +56,7 @@ app.use(function (req, res, next) {
 
 //app.use('/', routes);
 app.use('/', express.static(path.join(__dirname, 'public/ace')));
+app.use('/src', express.static(path.join(__dirname, 'public/control-src')));
 app.use('/users', users);
 app.use('/dev', dev);
 app.use('/masterApp', masterApp);
