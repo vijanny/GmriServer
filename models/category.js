@@ -7,6 +7,8 @@ var categoryScheme =new base.Schema({
     controlPage:String,//内嵌的设备控制页连接
     icon:String,//图标
     categoryName:String,//类型名
+    ver:Number,
+    src:String,
     DeviceStream:[{
         stream_id:String,
         stream_name:String,
