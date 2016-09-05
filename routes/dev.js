@@ -128,6 +128,8 @@ router.post('/binding', function (req, res, next) {
         res.send({errorCode: -4, res: {message: '非法的uuid或masterAppId'}});
         return;
     }
+    console.log('from uuid = ' + uuid);
+    console.log('from masterAppId =' + masterAppId);
     devDb.findOne({uuid: uuid}, null, function (err, dev) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
@@ -150,7 +152,18 @@ router.post('/binding', function (req, res, next) {
                 return;
             }
             console.log('masterapp Push bef: ' + masterApp);
-
+            if(masterApp.devId.length>0){
+                for(var i = 0;i<masterApp.devId.length;i++){
+                    if(masterApp.devId[i] === dev._id){
+                        break;
+                    }
+                }
+                if(i>= masterApp.devId.length)
+                {
+                    res.send({errorCode: 0, res: ""});
+                    return;
+                }
+            }
             masterApp.devId.push(dev._id);
 
             console.log('masterapp Push after: ' + masterApp);
@@ -184,6 +197,7 @@ router.post('/unBinding', function (req, res, next) {
         res.send({errorCode: -4, res: {message: '非法的uuid或masterAppId'}});
         return;
     }
+
     devDb.findOne({uuid: uuid}, null, function (err, dev) {
         if (err) {
             console.log(err);
