@@ -64,6 +64,7 @@ router.get('/', function(req, res, next) {
 router.post('/signUp',function(req,res,next){
 
     if (req.body) {
+
         console.log('have body');
         var managersName = req.body.name;
         var managersPwd = req.body.password;
@@ -119,6 +120,8 @@ router.post('/signUp',function(req,res,next){
     }
 
 });
+
+
 //用户登录
 router.post('/login',function(req,res,next){
 

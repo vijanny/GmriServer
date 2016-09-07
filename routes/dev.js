@@ -24,12 +24,25 @@ router.post('/login', function (req, res, next) {
 //根据uuid 获取基本设备的基础信息
 router.post('/getDevBaseInfo', function (req, res, next) {
     var uuid = req.body.uuid;
+    var deviceId = req.body.deviceId;
     console.log('uuid = ' + uuid);
-    if (typeof(uuid) == "undefined") {
-        res.send({errorCode: -4, res: {message: '非法的UUID字符串'}});
+    console.log('deviceId = ' + deviceId);
+    if (typeof(uuid) == "undefined" || typeof(deviceId) == "undefined") {
+        res.send({errorCode: -4, res: {message: '非法的UUID或deviceId字符串'}});
         return;
     }
-    devDb.findOne({uuid: uuid}, null, function (err, dev) {
+
+    var condition = {};
+
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+
+    devDb.findOne(condition, null, function (err, dev) {
         console.log('dev : ' + dev);
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
@@ -41,26 +54,34 @@ router.post('/getDevBaseInfo', function (req, res, next) {
         }
         res.send({errorCode: 0, res: dev});
     });
+
+
 });
 
 
 //根据uuid 获取基本设备的基础信息
 router.post('/getDevDetailInfo', function (req, res, next) {
     var uuid = req.body.uuid;
-    if (typeof(uuid) == "undefined") {
-        res.send({errorCode: -4, res: {message: '非法的UUID字符串'}});
+    var deviceId = req.body.deviceId;
+    if (typeof(uuid) == "undefined" || typeof(deviceId) == "undefined") {
+        res.send({errorCode: -4, res: {message: '非法的UUID或deviceId字符串'}});
         return;
     }
-    devDb.findOne({uuid: uuid}, null, function (err, dev) {
-        if (err) {
-            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
-            return;
-        }
-        if (!dev) {
-            res.send({errorCode: -1, res: {message: '没有设备关联'}});
-            return;
-        }
-        cateDb.findOne({_id: dev.categoryId}, null, function (err, cate) {
+    console.log('uuid = ' + uuid);
+    console.log('deviceId = ' + deviceId);
+
+    var condition = {};
+
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+
+    var findCategory = function (dev) {
+        cateDb.findOne({categoryName: dev.categoryName}, null, function (err, cate) {
             if (err) {
                 res.send({errorCode: -3, res: {message: '服务器内部错误'}});
                 return;
@@ -71,15 +92,39 @@ router.post('/getDevDetailInfo', function (req, res, next) {
             }
             res.send({errorCode: 0, res: {baseInfo: dev, detailInfo: cate}});
         });
+    };
+    devDb.findOne(condition, null, function (err, dev) {
+        if (err) {
+            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+            return;
+        }
+        if (!dev) {
+            res.send({errorCode: -1, res: {message: '没有设备关联'}});
+            return;
+        }
+        findCategory(dev);
     });
+
+
 });
 
 //鉴权
 router.post('/checkIn', function (req, res, next) {
     var uuid = req.body.uuid;
     var check = req.body.check;
+    var deviceId = req.body.deviceId;
     var masterAppId = req.body.masterAppId;
-    devDb.findOne({uuid: uuid}, null, function (err, dev) {
+    var condition = {};
+
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+
+    devDb.findOne(condition, null, function (err, dev) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;
@@ -101,7 +146,7 @@ router.post('/checkIn', function (req, res, next) {
                         res.send({errorCode: -3, res: {message: '服务器内部错误'}});
                         return;
                     }
-                    devDb.update({uuid: uuid}, {'$set': {'masterAppId': masterApp._id}}, function (err, numberAffected, raw) {
+                    devDb.update(condition, {'$set': {'masterAppId': masterApp._id}}, function (err, numberAffected, raw) {
                         if (err) {
                             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
                             return;
@@ -122,15 +167,27 @@ router.post('/checkIn', function (req, res, next) {
 //绑定
 router.post('/binding', function (req, res, next) {
     var uuid = req.body.uuid;
+    var deviceId = '';
     var masterAppId = req.body.masterAppId;
 
-    if (typeof(uuid) == "undefined" || typeof(masterAppId) == "undefined") {
+    if (typeof(uuid) == "undefined" || typeof(masterAppId) == "undefined" || typeof(deviceId) == "undefined") {
         res.send({errorCode: -4, res: {message: '非法的uuid或masterAppId'}});
         return;
     }
-    console.log('from uuid = ' + uuid);
+    console.log('uuid = ' + uuid);
+    console.log('from deviceId = ' + deviceId);
     console.log('from masterAppId =' + masterAppId);
-    devDb.findOne({uuid: uuid}, null, function (err, dev) {
+
+    var condition = {};
+
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+    devDb.findOne(condition, null, function (err, dev) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;
@@ -152,15 +209,24 @@ router.post('/binding', function (req, res, next) {
                 return;
             }
             console.log('masterapp Push bef: ' + masterApp);
-            if(masterApp.devId.length>0){
-                for(var i = 0;i<masterApp.devId.length;i++){
-                    if(masterApp.devId[i] === dev._id){
+            if (masterApp.devId.length > 0) {
+                for (var i = 0; i < masterApp.devId.length; i++) {
+                    if (masterApp.devId[i] === dev._id) {
                         break;
                     }
                 }
-                if(i>= masterApp.devId.length)
-                {
-                    res.send({errorCode: 0, res: ""});
+                if (i >= masterApp.devId.length) {
+                    cateDb.findOne({categoryName: dev.categoryName}, null, function (err, cate) {
+                        if (err) {
+                            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+                            return;
+                        }
+                        if (!cate) {
+                            res.send({errorCode: -2, res: {message: '该设备未关联品类'}});
+                            return;
+                        }
+                        res.send({errorCode: 0, res: {baseInfo: dev, detailInfo: cate}});
+                    });
                     return;
                 }
             }
@@ -173,14 +239,24 @@ router.post('/binding', function (req, res, next) {
                     return;
                 }
                 console.log('masterapp in mongodb: ' + numberAffected);
-                devDb.update({uuid: uuid}, {'$set': {'masterAppId': masterApp._id}}, function (err, numberAffected, raw) {
+                devDb.update(condition, {'$set': {'masterAppId': masterApp._id}}, function (err, numberAffected, raw) {
                     if (err) {
                         res.send({errorCode: -3, res: {message: '服务器内部错误'}});
                         return;
                     }
                     console.log('devDb in mongodb: ' + numberAffected);
-                    res.send({errorCode: 0, res: ""});
 
+                    cateDb.findOne({categoryName: dev.categoryName}, null, function (err, cate) {
+                        if (err) {
+                            res.send({errorCode: -3, res: {message: '服务器内部错误'}});
+                            return;
+                        }
+                        if (!cate) {
+                            res.send({errorCode: -2, res: {message: '该设备未关联品类'}});
+                            return;
+                        }
+                        res.send({errorCode: 0, res: {baseInfo: dev, detailInfo: cate}});
+                    });
                 });
             });
         });
@@ -191,14 +267,28 @@ router.post('/binding', function (req, res, next) {
 //解绑
 router.post('/unBinding', function (req, res, next) {
     var uuid = req.body.uuid;
+    var deviceId = '';
     var masterAppId = req.body.masterAppId;
 
     if (typeof(uuid) == "undefined" || typeof(masterAppId) == "undefined") {
         res.send({errorCode: -4, res: {message: '非法的uuid或masterAppId'}});
         return;
     }
+    var condition = {};
 
-    devDb.findOne({uuid: uuid}, null, function (err, dev) {
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+
+    console.log('uuid = ' + uuid);
+    console.log('deviceId = ' + deviceId);
+    console.log('masterAppId = ' + masterAppId);
+    console.log('condition = ' + condition);
+    devDb.findOne(condition, null, function (err, dev) {
         if (err) {
             console.log(err);
             res.send({errorCode: -3, res: {message: 'devDb findOne 服务器内部错误'}});
@@ -226,7 +316,7 @@ router.post('/unBinding', function (req, res, next) {
                     res.send({errorCode: -3, res: {message: '服务器内部错误'}});
                     return;
                 }
-                devDb.update({uuid: uuid}, {'$unset': {'masterAppId': 0}}, function (err, numberAffected, raw) {
+                devDb.update(condition, {'$unset': {'masterAppId': 0}}, function (err, numberAffected, raw) {
                     if (err) {
                         console.log(err);
                         res.send({errorCode: -3, res: {message: '服务器内部错误'}});
@@ -245,12 +335,31 @@ router.post('/unBinding', function (req, res, next) {
 //重命名
 router.post('/reName', function (req, res, next) {
     var uuid = req.body.uuid;
+    var deviceId = '';
     var devName = req.body.devName;
-    if (typeof(uuid) == "undefined" || typeof(devName) == "undefined") {
+    console.log("uuid = " + uuid);
+    console.log('devName = ' + devName);
+    console.log('deviceId = ' + deviceId);
+    if (typeof(deviceId) == "undefined" || typeof(devName) == "undefined" || typeof(uuid) == "undefined") {
         res.send({errorCode: -4, res: {message: '非法的UUID字符串或命名'}});
         return;
     }
-    devDb.update({uuid: uuid}, {'$set': {'devName': devName}}, function (err, numberAffected, raw) {
+
+    var condition = {};
+
+
+    if (deviceId != '') {
+        condition = {'deviceId': deviceId}
+    }
+    else if (uuid != '') {
+        condition = {'uuid': uuid}
+    }
+
+    console.log('uuid = ' + uuid);
+    console.log('deviceId = ' + deviceId);
+    console.log('devName = ' + devName);
+    console.log('condition = ' + condition);
+    devDb.update(condition, {'$set': {'devName': devName}}, function (err, numberAffected, raw) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;
@@ -295,7 +404,13 @@ router.post('/updateBaseInf', function (req, res, next) {
         res.send({errorCode: -4, res: {message: '非法的UUID字符串或baseInf没定义'}});
         return;
     }
-    devDb.update({uuid: uuid}, {'$set': baseInf}, function (err, numberAffected, raw) {
+    var condition = {};
+
+
+    condition = {'uuid': uuid};
+    console.log('condition = ' + JSON.stringify(condition));
+
+    devDb.update(condition, {'$set': baseInf}, function (err, numberAffected, raw) {
         if (err) {
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;

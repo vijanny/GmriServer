@@ -5,6 +5,7 @@ var base = require('./Base');
 var ObjectId = base.ObjectId;
 var devScheme = new base.Schema({
     uuid: String,
+    deviceId:String,
     check:String,//用于鉴权
     devName:{type:String},//设备名称
     categoryId:ObjectId,//类型关联
