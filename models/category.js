@@ -3,29 +3,30 @@
  */
 var base = require('./Base');
 var ObjectId = base.ObjectId;
+
 var categoryScheme =new base.Schema({
     controlPage:String,//内嵌的设备控制页连接
     icon:String,//图标
     categoryName:String,//类型名
-    ver:Number,
+    ver:String,
     src:String,
     DeviceStream:[{
-        stream_id:String,
-        stream_name:String,
-        short_name:String,
-        images:String,
-        type:Number,
-        data_type:Number,
-        max_value:Number,
-        min_value:Number,
-        increment:Number,
-        unit:String,
-        unit_symbol:String,
+        stream_id:{type:String},
+        stream_name:{type:String},
+        short_name:{type:String},
+        images:{type:String},
+        type:{type:Number},
+        data_type:{type:Number},
+        max_value:{type:Number},
+        min_value:{type:Number},
+        increment:{type:Number},
+        unit:{type:String},
+        unit_symbol:{type:String},
         manu_set:[{
-            id:Number,
-            key:String,
-            value:Number,
-            comparison_opt:String
+            id:{type:Number},
+            key:{type:String},
+            value:{type:Number},
+            comparison_opt:{type:String}
         }]
     }]
 });

@@ -445,6 +445,7 @@ router.post('/updateCategoryInf', function (req, res, next) {
     }
     cateDb.update({categoryName: categoryName}, {'$set': categoryInf}, function (err, numberAffected, raw) {
         if (err) {
+            console.log(err);
             res.send({errorCode: -3, res: {message: '服务器内部错误'}});
             return;
         }
