@@ -13,6 +13,7 @@ var categoryScheme =new base.Schema({
     DeviceStream:[{
         stream_id:{type:String},
         stream_name:{type:String},
+        stream_description:{type:String},
         short_name:{type:String},
         images:{type:String},
         type:{type:Number},
